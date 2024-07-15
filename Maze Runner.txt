@@ -1,0 +1,566 @@
+html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Runner</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="scoreboard">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>Coins: <span id="coins">0</span></div>
+        <div>Time Left: <span id="time">N/A</span></div>
+    </div>
+    <div id="maze"></div>
+    <div id="message"></div>
+    
+    <button id="saveBtn">Save Game</button>
+    <button id="loadBtn">Load Game</button>
+    <button id="settingsBtn">Settings</button>
+    
+    <div id="boosterShop" class="modal">
+        <div class="modal-content">
+            <span id="closeShop" class="close">&times;</span>
+            <h2>Booster Shop</h2>
+            <div>
+                <button id="speedBooster" class="booster-btn">Speed Booster (10 Coins)</button>
+                <button id="timeBooster" class="booster-btn">Time Booster (15 Coins)</button>
+                <button id="invincibilityBooster" class="booster-btn">Invincibility (20 Coins)</button>
+            </div>
+            <button id="closeShopBtn">Close</button>
+        </div>
+    </div>
+    
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span id="closeSettings" class="close">&times;</span>
+            <h2>Settings</h2>
+            <div>
+                <label for="controlScheme">Control Scheme:</label>
+                <select id="controlScheme">
+                    <option value="arrows">Arrow Keys</option>
+                    <option value="wasd">WASD Keys</option>
+                </select>
+            </div>
+            <div>
+                <label for="theme">Theme:</label>
+                <select id="theme">
+                    <option value="default">Default</option>
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
+            <div>
+                <label for="sound">Sound Effects:</label>
+                <input type="checkbox" id="sound" checked>
+            </div>
+            <button id="saveSettingsBtn">Save Settings</button>
+        </div>
+    </div>
+
+    <audio id="goalSound" src="goal.mp3"></audio>
+    <audio id="gameOverSound" src="gameOver.mp3"></audio>
+    <audio id="enemyHitSound" src="hit.mp3"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
+    
+
+
+
+css-
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #e0f7fa;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#scoreboard {
+    margin-bottom: 10px;
+    font-size: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#maze {
+    position: relative;
+    width: 90vw;
+    height: 90vh;
+    max-width: 500px;
+    max-height: 500px;
+    border: 2px solid #000;
+    background-color: #ffffff;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.wall {
+    position: absolute;
+    background-color: #37474f;
+    border-radius: 5px;
+}
+
+#player {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background-color: #ff5252;
+    border-radius: 50%;
+    transition: left 0.1s, top 0.1s;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+}
+
+.goal {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background-color: #76ff03;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.enemy {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background-color: #ffeb3b;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+}
+
+#message {
+    margin-top: 10px;
+    font-size: 24px;
+    color: #388e3c;
+}
+
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #1e88e5;
+    color: white;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #1565c0;
+    transform: scale(1.05);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.booster-btn {
+    margin: 5px;
+    padding: 10px;
+    background-color: #4caf50;
+}
+
+@media (max-width: 600px) {
+    #maze {
+        width: 95vw;
+        height: 70vh;
+    }
+
+    #scoreboard {
+        font-size: 18px;
+    }
+
+    button {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
+
+
+
+java script 
+
+
+
+const player = document.createElement('div');
+player.id = 'player';
+
+const maze = document.getElementById('maze');
+maze.appendChild(player);
+
+let score = 0;
+let level = 1;
+let coins = 0;
+let playerPos = { x: 10, y: 10 };
+let goalPos = {};
+let walls = [];
+let enemies = [];
+let timeLimit = 0;
+let timer;
+let controls = 'arrows';
+let soundEnabled = true;
+let invincibilityActive = false;
+
+function generateMazeData(level) {
+    const walls = [];
+    const mazeSize = Math.floor(10 + level);
+
+    for (let i = 0; i < mazeSize; i++) {
+        for (let j = 0; j < mazeSize; j++) {
+            if (Math.random() > 0.7) {
+                walls.push({
+                    top: i * (500 / mazeSize),
+                    left: j * (500 / mazeSize),
+                    width: 500 / mazeSize,
+                    height: 500 / mazeSize,
+                });
+            }
+        }
+    }
+    return walls;
+}
+
+function generateEnemies(level) {
+    const enemies = [];
+    const enemyCount = Math.min(level, 5); // Increase enemies with levels
+
+    for (let i = 0; i < enemyCount; i++) {
+        enemies.push({
+            top: Math.floor(Math.random() * (maze.clientHeight - 25)),
+            left: Math.floor(Math.random() * (maze.clientWidth - 25)),
+        });
+    }
+    return enemies;
+}
+
+function initMaze() {
+    walls = generateMazeData(level);
+    enemies = generateEnemies(level);
+    maze.innerHTML = ''; // Clear previous maze
+    maze.appendChild(player);
+    playerPos = { x: 10, y: 10 };
+    player.style.left = playerPos.x + 'px';
+    player.style.top = playerPos.y + 'px';
+
+    walls.forEach(wall => {
+        const div = document.createElement('div');
+        div.className = 'wall';
+        div.style.width = wall.width + 'px';
+        div.style.height = wall.height + 'px';
+        div.style.left = wall.left + 'px';
+        div.style.top = wall.top + 'px';
+        maze.appendChild(div);
+    });
+
+    generateGoal();
+    renderEnemies();
+    updateScoreboard();
+    
+    if (level >= 30) {
+        startTimer(60); // 1 minute for levels 30+
+    } else {
+        document.getElementById('time').innerText = 'N/A';
+    }
+}
+
+function generateGoal() {
+    const goal = document.createElement('div');
+    goal.className = 'goal';
+    goalPos = {
+        x: Math.floor(Math.random() * (maze.clientWidth - 25)),
+        y: Math.floor(Math.random() * (maze.clientHeight - 25)),
+    };
+    goal.style.left = goalPos.x + 'px';
+    goal.style.top = goalPos.y + 'px';
+    maze.appendChild(goal);
+}
+
+function movePlayer(dx, dy) {
+    const newX = playerPos.x + dx;
+    const newY = playerPos.y + dy;
+
+    if (!checkCollision(newX, newY)) {
+        playerPos.x = newX;
+        playerPos.y = newY;
+        player.style.left = playerPos.x + 'px';
+        player.style.top = playerPos.y + 'px';
+
+        if (checkGoal()) {
+            const earnedCoins = Math.floor(level * 2); // Example: 2 coins per level
+            coins += earnedCoins;
+            score += 10;
+            level++;
+
+            if (soundEnabled) document.getElementById('goalSound').play();
+            updateScoreboard();
+            clearTimeout(timer); // Clear previous timer
+            showLevelStats(earnedCoins);
+            initMaze();
+            document.getElementById('message').innerText = 'Goal reached! Level up!';
+        }
+
+        if (checkEnemyCollision()) {
+            handleGameOver();
+        }
+    }
+}
+
+function checkCollision(newX, newY) {
+    return walls.some(wall => {
+        return (
+            newX < wall.left + wall.width &&
+            newX + 25 > wall.left &&
+            newY < wall.top + wall.height &&
+            newY + 25 > wall.top
+        );
+    });
+}
+
+function checkGoal() {
+    return (
+        playerPos.x < goalPos.x + 25 &&
+        playerPos.x + 25 > goalPos.x &&
+        playerPos.y < goalPos.y + 25 &&
+        playerPos.y + 25 > goalPos.y
+    );
+}
+
+function checkEnemyCollision() {
+    return enemies.some(enemy => {
+        return (
+            playerPos.x < enemy.left + 25 &&
+            playerPos.x + 25 > enemy.left &&
+            playerPos.y < enemy.top + 25 &&
+            playerPos.y + 25 > enemy.top
+        );
+    });
+}
+
+function updateScoreboard() {
+    document.getElementById('score').innerText = score;
+    document.getElementById('level').innerText = level;
+    document.getElementById('coins').innerText = coins;
+
+    if (level >= 30) {
+        document.getElementById('time').innerText = timeLimit;
+    }
+}
+
+function startTimer(seconds) {
+    timeLimit = seconds;
+    document.getElementById('time').innerText = timeLimit;
+
+    timer = setInterval(() => {
+        timeLimit--;
+        document.getElementById('time').innerText = timeLimit;
+
+        if (timeLimit <= 0) {
+            clearInterval(timer);
+            if (soundEnabled) document.getElementById('gameOverSound').play();
+            alert('Time is up! Game Over!');
+            resetGame();
+        }
+    }, 1000);
+}
+
+function resetGame() {
+    score = 0;
+    level = 1;
+    coins = 0;
+    updateScoreboard();
+    initMaze();
+}
+
+function showLevelStats(earnedCoins) {
+    alert(`Level Cleared!\nEarned Coins: ${earnedCoins}\nTotal Coins: ${coins}`);
+    document.getElementById('boosterShop').style.display = 'block';
+}
+
+function handleGameOver() {
+    if (!invincibilityActive) {
+        alert('You were hit by an enemy! Game Over!');
+        resetGame();
+    }
+}
+
+function saveGame() {
+    const gameState = {
+        score,
+        level,
+        coins,
+        playerPos,
+        timeLimit
+    };
+    localStorage.setItem('mazeRunnerGame', JSON.stringify(gameState));
+    document.getElementById('message').innerText = 'Game saved!';
+}
+
+function loadGame() {
+    const savedGame = localStorage.getItem('mazeRunnerGame');
+    if (savedGame) {
+        const gameState = JSON.parse(savedGame);
+        score = gameState.score;
+        level = gameState.level;
+        coins = gameState.coins;
+        playerPos = gameState.playerPos;
+        timeLimit = gameState.timeLimit;
+
+        updateScoreboard();
+        initMaze();
+        player.style.left = playerPos.x + 'px';
+        player.style.top = playerPos.y + 'px';
+
+        if (level >= 30) {
+            startTimer(timeLimit);
+        } else {
+            document.getElementById('time').innerText = 'N/A';
+        }
+
+        document.getElementById('message').innerText = 'Game loaded!';
+    } else {
+        alert('No saved game found.');
+    }
+}
+
+function handleMovement(e) {
+    const moveMap = {
+        arrows: {
+            ArrowUp: () => movePlayer(0, -5),
+            ArrowDown: () => movePlayer(0, 5),
+            ArrowLeft: () => movePlayer(-5, 0),
+            ArrowRight: () => movePlayer(5, 0),
+        },
+        wasd: {
+            w: () => movePlayer(0, -5),
+            s: () => movePlayer(0, 5),
+            a: () => movePlayer(-5, 0),
+            d: () => movePlayer(5, 0),
+        }
+    };
+    const moves = moveMap[controls];
+
+    if (moves[e.key]) {
+        moves[e.key]();
+    }
+}
+
+document.addEventListener('keydown', handleMovement);
+
+document.getElementById('saveBtn').addEventListener('click', saveGame);
+document.getElementById('loadBtn').addEventListener('click', loadGame);
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+    document.getElementById('settingsModal').style.display = 'block';
+});
+
+document.getElementById('closeSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').style.display = 'none';
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+    controls = document.getElementById('controlScheme').value;
+    soundEnabled = document.getElementById('sound').checked;
+
+    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('message').innerText = 'Settings saved!';
+});
+
+// Booster shop logic
+document.getElementById('speedBooster').addEventListener('click', () => {
+    if (coins >= 10) {
+        coins -= 10;
+        document.getElementById('message').innerText = 'Speed Booster activated!';
+        // Implement speed boost logic here
+    } else {
+        alert('Not enough coins for Speed Booster!');
+    }
+    updateScoreboard();
+});
+
+document.getElementById('timeBooster').addEventListener('click', () => {
+    if (coins >= 15) {
+        coins -= 15;
+        timeLimit += 10; // Add 10 seconds
+        document.getElementById('message').innerText = 'Time Booster activated!';
+    } else {
+        alert('Not enough coins for Time Booster!');
+    }
+    updateScoreboard();
+});
+
+document.getElementById('invincibilityBooster').addEventListener('click', () => {
+    if (coins >= 20) {
+        coins -= 20;
+        invincibilityActive = true;
+        setTimeout(() => {
+            invincibilityActive = false;
+            document.getElementById('message').innerText = 'Invincibility has worn off.';
+        }, 10000); // 10 seconds
+        document.getElementById('message').innerText = 'Invincibility activated!';
+    } else {
+        alert('Not enough coins for Invincibility!');
+    }
+    updateScoreboard();
+});
+
+document.getElementById('closeShop').addEventListener('click', () => {
+    document.getElementById('boosterShop').style.display = 'none';
+});
+
+document.getElementById('closeShopBtn').addEventListener('click', () => {
+    document.getElementById('boosterShop').style.display = 'none';
+});
+
+// Initialize the maze
+initMaze();
+
+
